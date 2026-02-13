@@ -107,14 +107,34 @@ function App() {
             </Title>
             <Text type="secondary">仅展示前端样式，功能逻辑待接入</Text>
           </div>
-          <Button
-            type="text"
-            size="small"
-            icon={<IconRefresh />}
-            onClick={() => window.location.reload()}
-          >
-            重置视图
-          </Button>
+          <Space size={8}>
+            <Button
+              type="outline"
+              size="small"
+              onClick={async () => {
+                try {
+                  const [tab] = await chrome.tabs.query({
+                    active: true,
+                    currentWindow: true,
+                  });
+                  if (!tab?.id) return;
+                  await chrome.tabs.sendMessage(tab.id, { action: 'toggleSidebar' });
+                } catch (e) {
+                  console.error(e);
+                }
+              }}
+            >
+              切换侧边栏
+            </Button>
+            <Button
+              type="text"
+              size="small"
+              icon={<IconRefresh />}
+              onClick={() => window.location.reload()}
+            >
+              重置视图
+            </Button>
+          </Space>
         </div>
 
         <Card

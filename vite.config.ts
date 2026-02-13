@@ -12,16 +12,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    rollupOptions: {
-      input: {
-        popup: resolve(__dirname, 'src/popup/index.html'),
-        background: resolve(__dirname, 'src/background/main.ts'),
-        content: resolve(__dirname, 'src/content/main.tsx'),
-      },
-      output: {
-        entryFileNames: (chunk) => {
-          if (chunk.name === 'background') return 'background.js';
-          if (chunk.name === 'content') return 'content.js';
+      rollupOptions: {
+        input: {
+          popup: resolve(__dirname, 'src/popup/index.html'),
+          background: resolve(__dirname, 'src/background/main.ts'),
+          content: resolve(__dirname, 'src/content/main.tsx'),
+          window: resolve(__dirname, 'src/window/index.html'),
+        },
+        output: {
+          entryFileNames: (chunk) => {
+            if (chunk.name === 'background') return 'background.js';
+            if (chunk.name === 'content') return 'content.js';
           return 'assets/[name]-[hash].js';
         },
         chunkFileNames: 'assets/[name]-[hash].js',

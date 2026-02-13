@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import { IconMinus, IconPlus, IconRefresh } from '@arco-design/web-react/icon';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const { Title, Text } = Typography;
 
@@ -27,55 +27,8 @@ function clamp(value: number, min: number, max: number) {
 }
 
 const FloatingPanel = () => {
-  const panelRef = useRef<HTMLDivElement | null>(null);
   const [mode, setMode] = useState<Mode>('single');
   const [collapsed, setCollapsed] = useState(false);
-  const [pos, setPos] = useState(() => ({
-    x: window.innerWidth - 360,
-    y: window.innerHeight - 420,
-  }));
-
-  // Drag to move
-  useEffect(() => {
-    const panel = panelRef.current;
-    if (!panel) return;
-
-    let startX = 0;
-    let startY = 0;
-    let dragging = false;
-
-    const onMouseDown = (e: MouseEvent) => {
-      if (!(e.target instanceof HTMLElement)) return;
-      if (!e.target.closest('.nc-floating-drag')) return;
-      dragging = true;
-      startX = e.clientX - pos.x;
-      startY = e.clientY - pos.y;
-      document.body.style.userSelect = 'none';
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!dragging) return;
-      setPos((prev) => {
-        const nextX = clamp(e.clientX - startX, 8, window.innerWidth - 320);
-        const nextY = clamp(e.clientY - startY, 8, window.innerHeight - 120);
-        return { ...prev, x: nextX, y: nextY };
-      });
-    };
-
-    const onMouseUp = () => {
-      dragging = false;
-      document.body.style.userSelect = '';
-    };
-
-    panel.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    return () => {
-      panel.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-  }, [pos.x, pos.y]);
 
   const summaryTag = useMemo(() => {
     const progress = Math.round((fakeStats.finished / fakeStats.total) * 100);
@@ -88,9 +41,7 @@ const FloatingPanel = () => {
 
   return (
     <div
-      ref={panelRef}
       className={`nc-floating-panel ${collapsed ? 'collapsed' : ''}`}
-      style={{ left: pos.x, top: pos.y }}
     >
       <div className="nc-floating-header nc-floating-drag">
         <Space align="center" size={6}>
