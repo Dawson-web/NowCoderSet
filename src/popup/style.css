@@ -24,7 +24,7 @@ body {
 
 .progress-row {
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
   align-items: center;
 }
 

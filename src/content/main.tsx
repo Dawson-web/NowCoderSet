@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import FloatingPanel from './FloatingPanel';
 import '@arco-design/web-react/dist/css/arco.css';
+import '../styles/tailwind.css';
 import './style.css';
 
 function SidebarHost() {

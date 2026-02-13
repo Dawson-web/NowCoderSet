@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "vite --open src/popup/index.html",
     "dev": "vite build --watch",
     "build": "vite build && node scripts/build-content.mjs",
     "preview": "vite preview"
@@ -18,8 +19,11 @@
     "@types/node": "^20.11.24",
     "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
-    "esbuild": "^0.21.5",
     "@vitejs/plugin-react": "^5.0.4",
+    "autoprefixer": "^10.4.24",
+    "esbuild": "^0.21.5",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.4.5",
     "vite": "^5.2.0"
   }

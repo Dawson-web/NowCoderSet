@@ -1,5 +1,5 @@
 :root {
-  --nc-sidebar-width: 420px;
+  --nc-sidebar-width: 500px;
 }
 
 .nc-sidebar {
@@ -7,6 +7,7 @@
   top: 0;
   right: 0;
   width: var(--nc-sidebar-width);
+  padding: 16px 12px;
   height: 100vh;
   background: #ffffff;
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.12);
@@ -15,6 +16,8 @@
   z-index: 2147483000;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .nc-sidebar.open {
