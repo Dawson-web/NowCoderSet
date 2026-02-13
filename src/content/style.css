@@ -1,0 +1,48 @@
+.nc-floating-panel {
+  position: fixed;
+  width: 320px;
+  max-width: 360px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  z-index: 2147483000; /* higher than most site elements */
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nc-floating-panel.collapsed {
+  height: auto;
+}
+
+.nc-floating-panel:hover {
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
+}
+
+.nc-floating-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: linear-gradient(120deg, #1f72ff, #7aa8ff);
+  color: #fff;
+  cursor: move;
+  user-select: none;
+}
+
+.nc-floating-header .arco-btn {
+  color: #fff;
+}
+
+.nc-floating-body {
+  padding: 8px;
+}
+
+/* Make buttons dense for the small floating area */
+.nc-floating-panel .arco-btn {
+  border-radius: 6px;
+}
+
+/* Ensure form spacing is compact */
+.nc-floating-panel .arco-form-item {
+  margin-bottom: 10px;
+}

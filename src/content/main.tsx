@@ -15,7 +15,7 @@ function mountFloatingPanel() {
 
   ReactDOM.createRoot(container).render(
     <React.StrictMode>
-    <FloatingPanel />
+      <FloatingPanel />
     </React.StrictMode>
   );
 }
