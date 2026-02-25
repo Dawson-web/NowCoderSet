@@ -100,20 +100,54 @@ function FloatingPanel() {
   );
 
   return (
-    <main className="popup">
+    <main className="popup nc-trancy">
       <Space direction="vertical" size={12} style={{ width: '100%' }}>
-        <div className="header">
-          <div>
+        <div className="nc-hero">
+          <div className="nc-hero__logo">NC</div>
+          <div className="nc-hero__text">
             <Title heading={4} style={{ margin: 0 }}>
-              NowCoder
+              NowCoder Panel
             </Title>
-            <Text type="secondary">一网打尽面经内容</Text>
+            <Text type="secondary">更圆润的采集助手</Text>
           </div>
+          <Button type="primary" size="small" className="nc-glass-btn" icon={<IconPlayArrow />}>
+            新建任务
+          </Button>
         </div>
+
+        <Grid.Row gutter={12}>
+          <Col span={12}>
+            <Card className="nc-card nc-pill" bodyStyle={{ padding: 14 }}>
+              <div className="nc-pill__icon success">✔</div>
+              <div className="nc-pill__text">
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  已完成
+                </Text>
+                <Title heading={3} style={{ margin: 0 }}>
+                  {summary.finished}
+                </Title>
+              </div>
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card className="nc-card nc-pill" bodyStyle={{ padding: 14 }}>
+              <div className="nc-pill__icon purple">☁</div>
+              <div className="nc-pill__text">
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  待抓取
+                </Text>
+                <Title heading={3} style={{ margin: 0 }}>
+                  {summary.total}
+                </Title>
+              </div>
+            </Card>
+          </Col>
+        </Grid.Row>
 
         <UserInfoCard />
 
         <Card
+          className="nc-card"
           title="抓取配置"
           extra={
             <Space>
@@ -227,7 +261,7 @@ function FloatingPanel() {
 
         <Row gutter={12}>
           <Col span={12}>
-            <Card title="进度概览" bordered={false}>
+            <Card className="nc-card" title="进度概览" bordered={false}>
               <div className="progress-row">
                 <Progress type='circle' percent={10} />
 
@@ -240,7 +274,7 @@ function FloatingPanel() {
             </Card>
           </Col>
           <Col span={12}>
-            <Card title="常用操作" bordered={false}>
+            <Card className="nc-card" title="常用操作" bordered={false}>
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
                 <Button long type="outline" icon={<IconDownload />}>
                   导出 Markdown
@@ -256,7 +290,7 @@ function FloatingPanel() {
           </Col>
         </Row>
 
-        <Card title="任务列表">
+        <Card className="nc-card" title="任务列表">
           <Table
             size="small"
             pagination={false}

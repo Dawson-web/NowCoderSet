@@ -39,6 +39,7 @@ function UserInfoCard() {
   return (
     <Card
       title="用户信息"
+      className="nc-card"
       extra={
         <Button
           size="small"

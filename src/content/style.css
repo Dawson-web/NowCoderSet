@@ -1,5 +1,11 @@
 :root {
-  --nc-sidebar-width: 500px;
+  --nc-sidebar-width: 520px;
+  --nc-bg-soft: #f7f3ff;
+  --nc-surface: #ffffff;
+  --nc-primary: #7b6dff;
+  --nc-primary-2: #a58dff;
+  --nc-shadow: 0 10px 30px rgba(91, 73, 255, 0.08);
+  --nc-radius-lg: 18px;
 }
 
 .nc-sidebar {
@@ -7,10 +13,10 @@
   top: 0;
   right: 0;
   width: var(--nc-sidebar-width);
-  padding: 16px 12px;
+  padding: 18px 14px;
   height: 100vh;
-  background: #ffffff;
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.12);
+  background: linear-gradient(180deg, #f9f6ff 0%, #ffffff 60%, #f7f3ff 100%);
+  box-shadow: -6px 0 26px rgba(51, 27, 145, 0.12);
   transform: translateX(100%);
   transition: transform 0.28s ease;
   z-index: 2147483000;
@@ -18,6 +24,7 @@
   flex-direction: column;
   overflow-y: auto;
   scrollbar-width: none;
+  border-radius: 16px 0 0 16px;
 }
 
 .nc-sidebar.open {
@@ -30,7 +37,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.2);
+  /* background: rgba(80, 53, 180, 0.15); */
   z-index: 2147482999;
   opacity: 0;
   pointer-events: none;
@@ -42,42 +49,135 @@
   pointer-events: auto;
 }
 
-/* Panel itself fills the sidebar */
-.nc-floating-panel {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  box-sizing: border-box;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+.popup.nc-trancy {
+  background: transparent;
 }
 
-.nc-floating-header {
+.popup .arco-space {
+  width: 100%;
+}
+
+.nc-hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  background: linear-gradient(120deg, #1f72ff, #7aa8ff);
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #faf6ff, #f0ecff);
+  box-shadow: var(--nc-shadow);
+}
+
+.nc-hero__logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: radial-gradient(circle at 30% 30%, #ff9ad5, #8f7bff);
+  display: grid;
+  place-items: center;
   color: #fff;
-  user-select: none;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
-.nc-floating-header .arco-btn {
+.nc-hero__text h4 {
+  color: #312b68;
+}
+
+.nc-glass-btn {
+  background: linear-gradient(135deg, #8f7bff, #c2a6ff);
+  border: none;
+  box-shadow: 0 10px 20px rgba(143, 123, 255, 0.2);
+}
+
+.nc-card {
+  border: none !important;
+  border-radius: var(--nc-radius-lg) !important;
+  background: var(--nc-surface) !important;
+  box-shadow: var(--nc-shadow);
+}
+
+.nc-card .arco-card-header {
+  padding: 12px 16px;
+  background: linear-gradient(90deg, #f8f5ff, #fdfdff);
+  border-bottom: none;
+}
+
+.nc-card .arco-card-body {
+  padding: 16px;
+}
+
+.nc-pill {
+  background: linear-gradient(135deg, #fbf8ff, #f3edff) !important;
+}
+
+.nc-pill__icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
   color: #fff;
 }
 
-.nc-floating-body {
-  padding: 10px;
-  overflow-y: auto;
-  flex: 1;
+.nc-pill__icon.success {
+  background: linear-gradient(135deg, #76f2d3, #61c3ff);
 }
 
-.nc-floating-panel .arco-btn {
-  border-radius: 6px;
+.nc-pill__icon.purple {
+  background: linear-gradient(135deg, #d3a9ff, #7b6dff);
 }
 
-.nc-floating-panel .arco-form-item {
-  margin-bottom: 10px;
+.nc-pill__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.progress-stats {
+  display: grid;
+  gap: 6px;
+}
+
+.nc-card .arco-btn {
+  border-radius: 12px;
+}
+
+.arco-input-inner,
+.arco-input-outer,
+.arco-select-view,
+.arco-select-view-input,
+.arco-textarea,
+.arco-input-password {
+  border-radius: 12px !important;
+}
+
+.arco-switch {
+  border-radius: 999px !important;
+}
+
+.arco-radio-group-type-button .arco-radio-button {
+  border-radius: 12px !important;
+}
+
+.nc-card .arco-table-container {
+  border-radius: 12px;
+}
+
+.nc-card .arco-table {
+  background: #fbf9ff;
+}
+
+.nc-card .arco-list {
+  background: #fbf9ff;
+  border-radius: 12px;
+}
+
+.nc-card .arco-list-item {
+  border-color: #f0ecff;
 }
