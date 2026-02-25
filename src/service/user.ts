@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import type { NowcoderUserData, NowcoderUserResponse } from '@/type/user';
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: 'https://gw-c.nowcoder.com',
   withCredentials: true,
 });

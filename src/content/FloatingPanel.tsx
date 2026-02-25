@@ -24,60 +24,11 @@ import {
 } from '@arco-design/web-react/icon';
 import { useMemo, useState } from 'react';
 import UserInfoCard from './components/UserInfoCard';
-
-type CrawlRow = {
-  id: string;
-  title: string;
-  author: string;
-  comments: number;
-  createdAt: string;
-  status: 'queued' | 'processing' | 'done' | 'failed';
-};
+import { useSearchQuery } from '@/service/search';
+import type { SearchRecord } from '@/type/search';
 
 const { Title, Text } = Typography;
 const { Row, Col } = Grid;
-
-const statusColor: Record<CrawlRow['status'], string> = {
-  queued: 'arcoblue',
-  processing: 'orange',
-  done: 'green',
-  failed: 'red',
-};
-
-const mockRows: CrawlRow[] = [
-  {
-    id: '1',
-    title: '秋招算法求职经验分享｜包含面经与复盘',
-    author: '小牛学姐',
-    comments: 48,
-    createdAt: '2026-02-11',
-    status: 'done',
-  },
-  {
-    id: '2',
-    title: '牛客论坛抓取需求示例（仅样式）',
-    author: 'NowCoderBot',
-    comments: 12,
-    createdAt: '2026-02-10',
-    status: 'processing',
-  },
-  {
-    id: '3',
-    title: '春招实习岗位内推合集',
-    author: '内推君',
-    comments: 96,
-    createdAt: '2026-02-08',
-    status: 'queued',
-  },
-  {
-    id: '4',
-    title: '社招面试高频问题整理',
-    author: 'Offer拿到手',
-    comments: 31,
-    createdAt: '2026-02-05',
-    status: 'failed',
-  },
-];
 
 const mockLogs = [
   '[10:03:12] 已解析帖子列表，待抓取 12 篇',
@@ -88,6 +39,21 @@ const mockLogs = [
 
 function FloatingPanel() {
   const [mode, setMode] = useState<'single' | 'list'>('single');
+  const [searchKeyword, setSearchKeyword] = useState('腾讯');
+  const [searchPage, setSearchPage] = useState(1);
+  const searchPayload = {
+    type: 'all',
+    query: searchKeyword,
+    page: searchPage,
+    tag: [],
+    order: '',
+    gioParams: {},
+  };
+  const { data: searchData, isFetching: searchLoading, error: searchError } = useSearchQuery(
+    searchKeyword ? searchPayload : null
+  );
+  const searchResult =
+    searchData ?? { current: searchPage, size: 20, total: 0, totalPage: 0, records: [] };
 
   const summary = useMemo(
     () => ({
@@ -290,37 +256,73 @@ function FloatingPanel() {
           </Col>
         </Row>
 
-        <Card className="nc-card" title="任务列表">
-          <Table
+        <Card
+          className="nc-card"
+          title="文章列表"
+          extra={
+            <Space>
+              <Input
+                allowClear
+                placeholder="输入关键词（如：腾讯）"
+                value={searchKeyword}
+                onChange={(v) => {
+                  setSearchKeyword(v);
+                  setSearchPage(1);
+                }}
+                style={{ width: 180 }}
+              />
+              <Button type="primary" icon={<IconRefresh />} onClick={() => setSearchPage(1)}>
+                搜索
+              </Button>
+            </Space>
+          }
+        >
+          {searchError && (
+            <Text type="error">
+              {(searchError as Error).message}
+            </Text>
+          )}
+          <Table<SearchRecord>
             size="small"
-            pagination={false}
-            rowKey="id"
-            data={mockRows}
+            loading={searchLoading}
+            pagination={{
+              current: searchResult.current || searchPage,
+              pageSize: searchResult.size || 20,
+              total: searchResult.total || 0,
+              onChange: (page) => setSearchPage(page),
+            }}
+            rowKey={(row) => row.data?.contentId || row.trackId || String(row.entityDataId)}
+            data={searchResult.records}
             columns={[
               {
                 title: '标题',
-                dataIndex: 'title',
-                render: (col) => <Text ellipsis>{col}</Text>,
+                width: 200,
+                render: (_col, record) => (
+                  <Text ellipsis>{record.data?.momentData?.title ?? '无标题'}</Text>
+                ),
               },
-              { title: '作者', dataIndex: 'author', width: 100 },
-              { title: '评论', dataIndex: 'comments', width: 90 },
+              {
+                title: '作者',
+                width: 120,
+                render: (_col, record) => record.data?.userBrief?.nickname ?? '-',
+              },
               {
                 title: '状态',
-                dataIndex: 'status',
                 width: 110,
-                render: (status: CrawlRow['status']) => (
-                  <Tag color={statusColor[status]} size="small">
-                    {status === 'queued'
-                      ? '待抓取'
-                      : status === 'processing'
-                        ? '抓取中'
-                        : status === 'done'
-                          ? '已完成'
-                          : '失败'}
+                render: (_col, record) => (
+                  <Tag color="purple" size="small">
+                    {record.data?.contentData?.typeName || '帖子'}
                   </Tag>
                 ),
               },
-              { title: '发布时间', dataIndex: 'createdAt', width: 120 },
+              {
+                title: '发布时间',
+                width: 140,
+                render: (_col, record) =>
+                  record.data?.momentData?.createdAt
+                    ? new Date(record.data.momentData.createdAt).toLocaleDateString()
+                    : '-',
+              },
             ]}
           />
         </Card>
