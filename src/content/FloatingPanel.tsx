@@ -26,6 +26,7 @@ import { useMemo, useState } from 'react';
 import UserInfoCard from './components/UserInfoCard';
 import { useSearchQuery } from '@/service/search';
 import type { SearchRecord } from '@/type/search';
+import { filterContentType } from '@/utils';
 
 const { Title, Text } = Typography;
 const { Row, Col } = Grid;
@@ -298,7 +299,7 @@ function FloatingPanel() {
                 title: '标题',
                 width: 200,
                 render: (_col, record) => (
-                  <Text ellipsis>{record.data?.momentData?.title ?? '无标题'}</Text>
+                  <Text ellipsis>{filterContentType(record)?.title ?? '-'}</Text>
                 ),
               },
               {
@@ -311,7 +312,7 @@ function FloatingPanel() {
                 width: 110,
                 render: (_col, record) => (
                   <Tag color="purple" size="small">
-                    {record.data?.contentData?.typeName || '帖子'}
+                    {filterContentType(record)?.type || '-'}
                   </Tag>
                 ),
               },
@@ -319,9 +320,7 @@ function FloatingPanel() {
                 title: '发布时间',
                 width: 140,
                 render: (_col, record) =>
-                  record.data?.momentData?.createdAt
-                    ? new Date(record.data.momentData.createdAt).toLocaleDateString()
-                    : '-',
+                  filterContentType(record)?.createTime ? filterContentType(record)?.createTime?.toLocaleString() : '-',
               },
             ]}
           />
