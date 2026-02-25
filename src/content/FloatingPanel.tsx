@@ -39,7 +39,6 @@ const mockLogs = [
 ];
 
 function FloatingPanel() {
-  const [mode, setMode] = useState<'single' | 'list'>('single');
   const [searchKeyword, setSearchKeyword] = useState('腾讯');
   const [searchPage, setSearchPage] = useState(1);
   const searchPayload = {
@@ -131,66 +130,23 @@ function FloatingPanel() {
           <Form
             layout="vertical"
             initialValues={{
-              mode,
-              autoSave: true,
-              markdown: true,
               dedup: true,
-              ownerOnly: false,
               format: 'markdown',
             }}
           >
-            <Form.Item label="抓取模式" field="mode">
-              <Radio.Group
-                type="button"
-                options={[
-                  { label: '单帖链接', value: 'single' },
-                  { label: '列表页/板块', value: 'list' },
-                ]}
-                value={mode}
-                onChange={(v) => setMode(v as 'single' | 'list')}
-              />
-            </Form.Item>
-
             <Grid.Row gutter={12}>
-              <Col span={mode === 'single' ? 24 : 16}>
-                <Form.Item
-                  label="帖子链接 / 列表页"
-                  field="target"
-                  rules={[{ required: true, message: '请填写牛客帖子或列表地址' }]}
-                >
-                  <Input
-                    placeholder="https://www.nowcoder.com/discuss/xxxx"
-                    allowClear
-                  />
+              <Col span={12}>
+                <Form.Item label="最大页数" field="pages" rules={[{ required: true, message: '请填写最大页数' }]}>
+                  <Input placeholder="例如 3 页" />
                 </Form.Item>
               </Col>
-              {mode === 'list' && (
-                <Col span={8}>
-                  <Form.Item label="最大页数" field="pages" rules={[{ required: true, message: '请填写最大页数' }]}
-                  >
-                    <Input placeholder="例如 3 页" />
-                  </Form.Item>
-                </Col>
-              )}
-            </Grid.Row>
-
-            <Grid.Row gutter={12}>
-              <Col span={14}>
+              <Col span={12}>
                 <Form.Item
                   label="关键字过滤（可选）"
                   field="keyword"
                   tooltip="匹配标题或正文关键字"
                 >
                   <Input placeholder="算法 / 秋招 / Java..." allowClear />
-                </Form.Item>
-              </Col>
-              <Col span={10}>
-                <Form.Item
-                  label="登录 Cookie（可选）"
-                  field="cookie"
-                  tooltip="需要抓取私帖或更多数据时填写"
-                >
-                  <Input.Password placeholder="NOWCODERUID=..." allowClear />
                 </Form.Item>
               </Col>
             </Grid.Row>
@@ -204,19 +160,10 @@ function FloatingPanel() {
                   </Radio.Group>
                 </Form.Item>
               </Col>
-              <Col span={6}>
+              <Col span={12}>
                 <Form.Item
                   label="是否去重"
                   field="dedup"
-                  triggerPropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
-              </Col>
-              <Col span={6}>
-                <Form.Item
-                  label="仅抓取楼主"
-                  field="ownerOnly"
                   triggerPropName="checked"
                 >
                   <Switch />
