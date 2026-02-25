@@ -1,8 +1,6 @@
 import {
-  Alert,
   Button,
   Card,
-  Divider,
   Form,
   Grid,
   Input,
@@ -25,6 +23,7 @@ import {
   IconRefresh,
 } from '@arco-design/web-react/icon';
 import { useMemo, useState } from 'react';
+import UserInfoCard from './components/UserInfoCard';
 
 type CrawlRow = {
   id: string;
@@ -111,6 +110,8 @@ function FloatingPanel() {
             <Text type="secondary">一网打尽面经内容</Text>
           </div>
         </div>
+
+        <UserInfoCard />
 
         <Card
           title="抓取配置"
@@ -259,6 +260,7 @@ function FloatingPanel() {
           <Table
             size="small"
             pagination={false}
+            rowKey="id"
             data={mockRows}
             columns={[
               {

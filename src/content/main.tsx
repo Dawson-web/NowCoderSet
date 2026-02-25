@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ReactDOM from 'react-dom/client';
 import FloatingPanel from './FloatingPanel';
 import '@arco-design/web-react/dist/css/arco.css';
 import '../styles/tailwind.css';
 import './style.css';
+
+const queryClient = new QueryClient();
 
 function SidebarHost() {
   const [open, setOpen] = useState(false);
@@ -56,7 +59,9 @@ function mountSidebar() {
 
   ReactDOM.createRoot(container).render(
     <React.StrictMode>
-      <SidebarHost />
+      <QueryClientProvider client={queryClient}>
+        <SidebarHost />
+      </QueryClientProvider>
     </React.StrictMode>
   );
 }

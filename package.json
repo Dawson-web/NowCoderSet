@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@arco-design/web-react": "^2.66.10",
+    "@tanstack/react-query": "^5.90.21",
+    "axios": "^1.13.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
