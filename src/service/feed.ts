@@ -149,3 +149,20 @@ export const fetchMomentDetailHtml = async (uuid: string): Promise<string> => {
 
   return data;
 };
+
+/**
+ * 通过讨论帖/帖子 UUID 获取 HTML 内容。
+ * rc_type = 207 场景使用。
+ */
+export const fetchDiscussDetailHtml = async (uuid: string): Promise<string> => {
+  if (!uuid) {
+    throw new Error('缺少讨论帖 uuid');
+  }
+
+  const { data } = await feedApi.get<string>(`/discuss/${uuid}`, {
+    params: { _: Date.now() },
+    responseType: 'text',
+  });
+
+  return data;
+};

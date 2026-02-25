@@ -11,3 +11,15 @@ export type MomentDetailResponse = {
   msg?: string;
   data?: MomentDetailData;
 };
+
+// 通用抓取任务的状态
+export type CrawlTask = {
+  id: string;
+  title: string;
+  status: 'pending' | 'fetching' | 'success' | 'failed';
+  url: string;
+  rcType?: number;
+  createdAt: number;
+  finishedAt?: number;
+  error?: string;
+};

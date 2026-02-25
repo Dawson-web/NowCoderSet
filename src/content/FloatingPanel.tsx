@@ -24,45 +24,166 @@ import {
 } from '@arco-design/web-react/icon';
 import { useMemo, useState } from 'react';
 import UserInfoCard from './components/UserInfoCard';
-import { useSearchQuery } from '@/service/search';
+import { fetchSearch } from '@/service/search';
+import { fetchDiscussDetailHtml, fetchMomentDetailHtml } from '@/service/feed';
 import type { SearchRecord } from '@/type/search';
+import type { CrawlTask } from '@/type/feed';
 import { filterContentType } from '@/utils';
 
 const { Title, Text } = Typography;
 const { Row, Col } = Grid;
 
-const mockLogs = [
-  '[10:03:12] 已解析帖子列表，待抓取 12 篇',
-  '[10:03:15] 正在抓取：秋招算法求职经验分享',
-  '[10:03:20] 保存成功：秋招算法求职经验分享',
-  '[10:03:42] 正在抓取：牛客论坛抓取需求示例（仅样式）',
-];
+type TaskItem = CrawlTask & {
+  record: SearchRecord;
+  content?: string;
+  page?: number;
+};
 
 function FloatingPanel() {
-  const [searchKeyword, setSearchKeyword] = useState('腾讯');
-  const [searchPage, setSearchPage] = useState(1);
-  const searchPayload = {
-    type: 'all',
-    query: searchKeyword,
-    page: searchPage,
-    tag: [],
-    order: '',
-    gioParams: {},
-  };
-  const { data: searchData, isFetching: searchLoading, error: searchError } = useSearchQuery(
-    searchKeyword ? searchPayload : null
-  );
-  const searchResult =
-    searchData ?? { current: searchPage, size: 20, total: 0, totalPage: 0, records: [] };
+  const [form] = Form.useForm();
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [running, setRunning] = useState(false);
+  const [filterKeyword, setFilterKeyword] = useState('腾讯');
 
-  const summary = useMemo(
-    () => ({
-      total: 24,
-      finished: 9,
-      failed: 1,
-      progress: Math.round((9 / 24) * 100),
-    }),
-    []
+  const addLog = (message: string) => {
+    const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+    setLogs((prev) => [`[${ts}] ${message}`, ...prev].slice(0, 200));
+  };
+
+  const getTaskId = (record: SearchRecord, page?: number, idx?: number) =>
+    record.data?.contentId?.toString() ||
+    record.data?.momentData?.uuid ||
+    record.trackId ||
+    `${record.rc_type || 'task'}-${page ?? 'p'}-${idx ?? 'i'}`;
+
+  const buildTaskFromRecord = (record: SearchRecord, page: number, idx: number): TaskItem => {
+    const title =
+      filterContentType(record)?.title ||
+      record.data?.contentData?.title ||
+      record.title ||
+      '未命名';
+    const id = getTaskId(record, page, idx);
+
+    const url =
+      record.rc_type === 201
+        ? `https://www.nowcoder.com/feed/main/detail/${record.data?.contentData?.id ?? ''}`
+        : record.rc_type === 207
+          ? `https://www.nowcoder.com/discuss/${record.data?.momentData?.uuid ?? record.data?.contentId ?? ''}`
+          : '';
+
+    return {
+      id,
+      title,
+      status: 'pending',
+      url,
+      rcType: record.rc_type,
+      createdAt: Date.now(),
+      record,
+      page,
+    };
+  };
+
+  const updateTask = (taskId: string, patch: Partial<TaskItem>) => {
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...patch } : t)));
+  };
+
+  const handleStart = async () => {
+    try {
+      const { pages, keyword } = await form.validate();
+      const pageCount = Math.max(1, Number(pages) || 1);
+      const searchKey = (keyword ?? '').trim();
+
+      setRunning(true);
+      setLogs([]);
+      setTasks([]);
+      setFilterKeyword(searchKey);
+
+      addLog(`开始抓取，关键词：${searchKey || '（全部）'}，页数：${pageCount}`);
+
+      const collected: SearchRecord[] = [];
+      const stagedTasks: TaskItem[] = [];
+
+      for (let p = 1; p <= pageCount; p += 1) {
+        addLog(`搜索第 ${p} 页...`);
+        const data = await fetchSearch({
+          type: 'all',
+          query: searchKey,
+          page: p,
+          tag: [],
+          order: '',
+          gioParams: {},
+        });
+        const records = data?.records ?? [];
+        addLog(`第 ${p} 页返回 ${records.length} 条记录`);
+        collected.push(...records);
+        stagedTasks.push(...records.map((r, idx) => buildTaskFromRecord(r, p, idx)));
+      }
+
+      setTasks(stagedTasks);
+
+      for (const record of collected) {
+        const taskId = getTaskId(record);
+
+        updateTask(taskId, { status: 'fetching' });
+        const title =
+          filterContentType(record)?.title || record.data?.contentData?.title || '未命名';
+
+        try {
+          let content = '';
+          if (record.rc_type === 201) {
+            const uuid = record.data?.momentData?.uuid ?? record.data?.contentData?.uuid;
+            if (!uuid) {
+              console.log('201 缺少 contentData.id');
+
+              throw new Error('缺少 contentData.id');
+            }
+            content = await fetchMomentDetailHtml(String(uuid));
+          } else if (record.rc_type === 207) {
+            const uuid = record.data?.contentData?.id || record.data?.contentId;
+            if (!uuid) throw new Error('缺少 momentData.uuid');
+            content = await fetchDiscussDetailHtml(String(uuid));
+          } else {
+            console.log(`暂不支持的 rc_type：${record.rc_type}`)
+            throw new Error(`暂不支持的 rc_type：${record.rc_type}`);
+          }
+
+          updateTask(taskId, { status: 'success', finishedAt: Date.now(), content });
+          addLog(`成功抓取：《${title}》`);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          updateTask(taskId, { status: 'failed', finishedAt: Date.now(), error: message });
+          addLog(`抓取失败：《${title}》 - ${message}`);
+        }
+      }
+
+      addLog('任务完成');
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : '启动任务失败';
+      addLog(msg);
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const summary = useMemo(() => {
+    const total = tasks.length;
+    const finished = tasks.filter((t) => t.status === 'success').length;
+    const failed = tasks.filter((t) => t.status === 'failed').length;
+    const done = finished + failed;
+    const progress = total ? Math.round((done / total) * 100) : 0;
+    return {
+      total,
+      finished,
+      failed,
+      pending: total - done,
+      progress,
+    };
+  }, [tasks]);
+
+  const filteredTasks = useMemo(
+    () => tasks.filter((t) => !filterKeyword || t.title?.includes(filterKeyword)),
+    [tasks, filterKeyword]
   );
 
   return (
@@ -103,7 +224,7 @@ function FloatingPanel() {
                   待抓取
                 </Text>
                 <Title heading={3} style={{ margin: 0 }}>
-                  {summary.total}
+                  {summary.pending}
                 </Title>
               </div>
             </Card>
@@ -117,10 +238,10 @@ function FloatingPanel() {
           title="抓取配置"
           extra={
             <Space>
-              <Button type="primary" icon={<IconPlayArrow />}>
+              <Button type="primary" icon={<IconPlayArrow />} onClick={handleStart} loading={running}>
                 开始抓取
               </Button>
-              <Button type="outline" icon={<IconPause />}>
+              <Button type="outline" icon={<IconPause />} disabled>
                 暂停
               </Button>
               <Button icon={<IconDownload />}>导出结果</Button>
@@ -129,15 +250,34 @@ function FloatingPanel() {
         >
           <Form
             layout="vertical"
+            form={form}
             initialValues={{
+              pages: 1,
+              keyword: '腾讯',
               dedup: true,
               format: 'markdown',
             }}
           >
             <Grid.Row gutter={12}>
               <Col span={12}>
-                <Form.Item label="最大页数" field="pages" rules={[{ required: true, message: '请填写最大页数' }]}>
-                  <Input placeholder="例如 3 页" />
+                <Form.Item
+                  label="最大页数"
+                  field="pages"
+                  rules={[
+                    { required: true, message: '请填写最大页数' },
+                    {
+                      validator: (_value, cb) => {
+                        const num = Number(_value);
+                        if (Number.isNaN(num) || num <= 0) {
+                          cb('请输入大于 0 的数字');
+                        } else {
+                          cb();
+                        }
+                      },
+                    },
+                  ]}
+                >
+                  <Input placeholder="例如 3 页" inputMode="numeric" />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -177,10 +317,10 @@ function FloatingPanel() {
           <Col span={12}>
             <Card className="nc-card" title="进度概览" bordered={false}>
               <div className="progress-row">
-                <Progress type='circle' percent={10} />
+                <Progress type='circle' percent={summary.progress} />
 
-                <div className="progress-stats  ">
-                  <Text type="primary"><IconMinusCircleFill className='mr-1' />进行中：{summary.total}</Text>
+                <div className="progress-stats">
+                  <Text type="primary"><IconMinusCircleFill className='mr-1' />进行中：{summary.pending}</Text>
                   <Text type="success"><IconCheckCircleFill className='mr-1' />已完成：{summary.finished}</Text>
                   <Text type="error"><IconCloseCircleFill className='mr-1' />已失败：{summary.failed}</Text>
                 </div>
@@ -196,7 +336,7 @@ function FloatingPanel() {
                 <Button long icon={<IconDownload />}>
                   导出 JSON
                 </Button>
-                <Button long type="text" icon={<IconRefresh />}>
+                <Button long type="text" icon={<IconRefresh />} onClick={() => setTasks([])}>
                   清空列表
                 </Button>
               </Space>
@@ -212,71 +352,90 @@ function FloatingPanel() {
               <Input
                 allowClear
                 placeholder="输入关键词（如：腾讯）"
-                value={searchKeyword}
-                onChange={(v) => {
-                  setSearchKeyword(v);
-                  setSearchPage(1);
-                }}
+                value={filterKeyword}
+                onChange={(v) => setFilterKeyword(v)}
                 style={{ width: 180 }}
               />
-              <Button type="primary" icon={<IconRefresh />} onClick={() => setSearchPage(1)}>
-                搜索
+              <Button type="text" icon={<IconRefresh />} onClick={() => setFilterKeyword('')}>
+                重置
               </Button>
             </Space>
           }
         >
-          {searchError && (
-            <Text type="error">
-              {(searchError as Error).message}
-            </Text>
-          )}
-          <Table<SearchRecord>
+          <Table<TaskItem>
             size="small"
-            loading={searchLoading}
-            pagination={{
-              current: searchResult.current || searchPage,
-              pageSize: searchResult.size || 20,
-              total: searchResult.total || 0,
-              onChange: (page) => setSearchPage(page),
-            }}
-            rowKey={(row) => row.data?.contentId || row.trackId || String(row.entityDataId)}
-            data={searchResult.records}
+            loading={running && tasks.length === 0}
+            pagination={false}
+            rowKey={(row) => row.id}
+            data={filteredTasks}
             columns={[
               {
                 title: '标题',
                 width: 200,
                 render: (_col, record) => (
-                  <Text ellipsis>{filterContentType(record)?.title ?? '-'}</Text>
+                  <Text ellipsis>{record.title ?? '-'}</Text>
                 ),
               },
               {
                 title: '作者',
                 width: 120,
-                render: (_col, record) => record.data?.userBrief?.nickname ?? '-',
+                render: (_col, record) => record.record?.data?.userBrief?.nickname ?? '-',
+              },
+              {
+                title: '来源',
+                width: 80,
+                render: (_col, record) => <Tag color="purple">{record.rcType || '-'}</Tag>,
               },
               {
                 title: '状态',
                 width: 110,
-                render: (_col, record) => (
-                  <Tag color="purple" size="small">
-                    {filterContentType(record)?.type || '-'}
-                  </Tag>
-                ),
+                render: (_col, record) => {
+                  const color =
+                    record.status === 'success'
+                      ? 'green'
+                      : record.status === 'failed'
+                        ? 'red'
+                        : record.status === 'fetching'
+                          ? 'arcoblue'
+                          : 'orangered';
+                  const text =
+                    record.status === 'pending'
+                      ? '待抓取'
+                      : record.status === 'fetching'
+                        ? '抓取中'
+                        : record.status === 'success'
+                          ? '成功'
+                          : '失败';
+                  return <Tag color={color}>{text}</Tag>;
+                },
               },
               {
-                title: '发布时间',
+                title: '链接',
                 width: 140,
                 render: (_col, record) =>
-                  filterContentType(record)?.createTime ? filterContentType(record)?.createTime?.toLocaleString() : '-',
+                  record.url ? (
+                    <a href={record.url} target="_blank" rel="noreferrer">
+                      查看
+                    </a>
+                  ) : (
+                    '-'
+                  ),
               },
             ]}
           />
         </Card>
 
-        <Card title="运行日志" extra={<Button type="text" size="small">清空</Button>}>
+        <Card
+          title="运行日志"
+          extra={
+            <Button type="text" size="small" onClick={() => setLogs([])}>
+              清空
+            </Button>
+          }
+        >
           <List
             size="small"
-            dataSource={mockLogs}
+            dataSource={logs}
             render={(item, idx) => <List.Item key={idx}>{item}</List.Item>}
           />
         </Card>

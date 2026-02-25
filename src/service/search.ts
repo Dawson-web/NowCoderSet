@@ -1,8 +1,10 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { api } from './user';
 import type { SearchPayload, SearchResponse } from '@/type/search';
+import { c } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
 
 export const fetchSearch = async (payload: SearchPayload) => {
+  console.log('payload', payload);
   const { data } = await api.post<SearchResponse>(`/api/sparta/pc/search?_=${Date.now()}`, payload);
   if (!data.success) {
     throw new Error(data.msg || '搜索请求失败');
