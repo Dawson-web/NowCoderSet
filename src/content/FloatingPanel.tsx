@@ -12,6 +12,7 @@ import {
   Table,
   Tag,
   Typography,
+  Message,
 } from '@arco-design/web-react';
 import {
   IconCheckCircleFill,
@@ -25,7 +26,7 @@ import {
 import { useMemo, useState } from 'react';
 import UserInfoCard from './components/UserInfoCard';
 import { fetchSearch } from '@/service/search';
-import { fetchDiscussDetailHtml, fetchMomentDetailHtml } from '@/service/feed';
+import { fetchDiscussDetailHtml, fetchMomentDetailHtml, extractMomentContentText } from '@/service/feed';
 import type { SearchRecord } from '@/type/search';
 import type { CrawlTask } from '@/type/feed';
 import { filterContentType } from '@/utils';
@@ -88,6 +89,97 @@ function FloatingPanel() {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...patch } : t)));
   };
 
+  const toPlainText = (html?: string) => {
+    if (!html) return '';
+    try {
+      return extractMomentContentText(html);
+    } catch (e) {
+      return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+  };
+
+  const dedupeTasks = (list: TaskItem[], dedup: boolean) => {
+    if (!dedup) return list;
+    const seen = new Set<string>();
+    return list.filter((t) => {
+      const key = t.url || t.title || t.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const downloadBlob = (data: string, filename: string, mime: string) => {
+    const blob = new Blob([data], { type: `${mime};charset=utf-8` });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async (fmt?: 'markdown' | 'json') => {
+    const { dedup = true, format = 'markdown', keyword, pages } = form.getFieldsValue();
+    const exportFormat = fmt || format || 'markdown';
+
+    const successTasks = dedupeTasks(
+      tasks.filter((t) => t.status === 'success'),
+      Boolean(dedup)
+    );
+
+    if (!successTasks.length) {
+      Message.info('暂无可导出的成功内容');
+      return;
+    }
+
+    const ts = new Date();
+    const tsLabel = ts.toISOString().replace(/[-:T]/g, '').slice(0, 15);
+
+    if (exportFormat === 'json') {
+      const payload = successTasks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        rcType: t.rcType,
+        url: t.url,
+        author: t.record?.data?.userBrief?.nickname,
+        content: toPlainText(t.content),
+        createdAt: t.createdAt,
+        finishedAt: t.finishedAt,
+      }));
+      downloadBlob(JSON.stringify(payload, null, 2), `nowcoder-export-${tsLabel}.json`, 'application/json');
+      addLog('已导出 JSON 文件');
+      return;
+    }
+
+    // markdown
+    const lines: string[] = [];
+    lines.push('# 牛客抓取导出');
+    lines.push('');
+    lines.push(`- 导出时间：${ts.toLocaleString()}`);
+    lines.push(`- 关键词：${keyword || '（全部）'}`);
+    lines.push(`- 抓取页数：${pages || '-'} 页`);
+    lines.push(`- 结果数：${successTasks.length} 条`);
+    lines.push(`- 去重：${dedup ? '是' : '否'}`);
+    lines.push('');
+
+    successTasks.forEach((t, idx) => {
+      lines.push(`## ${idx + 1}. ${t.title || '未命名'}`);
+      lines.push(`- 来源类型：${t.rcType ?? '-'}`);
+      lines.push(`- 链接：${t.url || '-'}`);
+      lines.push(`- 作者：${t.record?.data?.userBrief?.nickname ?? '-'}`);
+      lines.push('');
+      const contentText = toPlainText(t.content);
+      lines.push(contentText || '*（正文为空）*');
+      lines.push('');
+      lines.push('---');
+      lines.push('');
+    });
+
+    downloadBlob(lines.join('\n'), `nowcoder-export-${tsLabel}.md`, 'text/markdown');
+    addLog('已导出 Markdown 文件');
+  };
+
   const handleStart = async () => {
     try {
       const { pages, keyword } = await form.validate();
@@ -101,7 +193,6 @@ function FloatingPanel() {
 
       addLog(`开始抓取，关键词：${searchKey || '（全部）'}，页数：${pageCount}`);
 
-      const collected: SearchRecord[] = [];
       const stagedTasks: TaskItem[] = [];
 
       for (let p = 1; p <= pageCount; p += 1) {
@@ -116,14 +207,13 @@ function FloatingPanel() {
         });
         const records = data?.records ?? [];
         addLog(`第 ${p} 页返回 ${records.length} 条记录`);
-        collected.push(...records);
         stagedTasks.push(...records.map((r, idx) => buildTaskFromRecord(r, p, idx)));
       }
 
       setTasks(stagedTasks);
 
-      for (const record of collected) {
-        const taskId = getTaskId(record);
+      for (const task of stagedTasks) {
+        const { record, id: taskId } = task;
 
         updateTask(taskId, { status: 'fetching' });
         const title =
@@ -132,19 +222,16 @@ function FloatingPanel() {
         try {
           let content = '';
           if (record.rc_type === 201) {
-            const uuid = record.data?.momentData?.uuid ?? record.data?.contentData?.uuid;
+            const uuid = record.data?.contentData?.id ?? record.data?.contentId;
             if (!uuid) {
-              console.log('201 缺少 contentData.id');
-
               throw new Error('缺少 contentData.id');
             }
             content = await fetchMomentDetailHtml(String(uuid));
           } else if (record.rc_type === 207) {
-            const uuid = record.data?.contentData?.id || record.data?.contentId;
+            const uuid = record.data?.momentData?.uuid ?? record.data?.contentId;
             if (!uuid) throw new Error('缺少 momentData.uuid');
             content = await fetchDiscussDetailHtml(String(uuid));
           } else {
-            console.log(`暂不支持的 rc_type：${record.rc_type}`)
             throw new Error(`暂不支持的 rc_type：${record.rc_type}`);
           }
 
@@ -244,7 +331,9 @@ function FloatingPanel() {
               <Button type="outline" icon={<IconPause />} disabled>
                 暂停
               </Button>
-              <Button icon={<IconDownload />}>导出结果</Button>
+              <Button icon={<IconDownload />} onClick={() => handleExport()}>
+                导出结果
+              </Button>
             </Space>
           }
         >
@@ -330,10 +419,10 @@ function FloatingPanel() {
           <Col span={12}>
             <Card className="nc-card" title="常用操作" bordered={false}>
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Button long type="outline" icon={<IconDownload />}>
+                <Button long type="outline" icon={<IconDownload />} onClick={() => handleExport('markdown')} disabled={!tasks.length}>
                   导出 Markdown
                 </Button>
-                <Button long icon={<IconDownload />}>
+                <Button long icon={<IconDownload />} onClick={() => handleExport('json')} disabled={!tasks.length}>
                   导出 JSON
                 </Button>
                 <Button long type="text" icon={<IconRefresh />} onClick={() => setTasks([])}>
