@@ -15,6 +15,8 @@ import {
   Tabs,
 } from '@arco-design/web-react';
 import {
+  IconBook,
+  IconBug,
   IconCalendar,
   IconCheckCircleFill,
   IconCloseCircleFill,
@@ -23,6 +25,8 @@ import {
   IconPause,
   IconPlayArrow,
   IconRefresh,
+  IconSettings,
+  IconUser,
 } from '@arco-design/web-react/icon';
 import { useMemo, useState } from 'react';
 import UserInfoCard from './components/UserInfoCard';
@@ -292,19 +296,12 @@ function FloatingPanel() {
           </Button>
         </div>
 
-        <Tabs tabPosition="right" type="card" className="nc-tabs" defaultActiveTab='crawl'>
-          <TabPane key="profile" title={
-            <span>
-              <IconCalendar style={{ marginRight: 6 }} />
-              Tab 1
-            </span>
-          }>
-            <Space direction="vertical" size={12} style={{ width: '100%' }}>
-              <UserInfoCard />
-            </Space>
+        <Tabs tabPosition="right" defaultActiveTab='crawl'>
+          <TabPane key="profile" title={<IconUser fontSize={18} />}>
+            <UserInfoCard />
           </TabPane>
 
-          <TabPane key="crawl" title="抓取">
+          <TabPane key="crawl" title={<IconBug fontSize={18} />}>
             <Space direction="vertical" size={12} style={{ width: '100%' }}>
               <Card
                 className="nc-card"
@@ -422,20 +419,20 @@ function FloatingPanel() {
               <Card
                 className="nc-card"
                 title="文章列表"
-                extra={
-                  <Space>
-                    <Input
-                      allowClear
-                      placeholder="输入关键词（如：腾讯）"
-                      value={filterKeyword}
-                      onChange={(v) => setFilterKeyword(v)}
-                      style={{ width: 180 }}
-                    />
-                    <Button type="text" icon={<IconRefresh />} onClick={() => setFilterKeyword('')}>
-                      重置
-                    </Button>
-                  </Space>
-                }
+              // extra={
+              //   <Space>
+              //     <Input
+              //       allowClear
+              //       placeholder="输入关键词（如：腾讯）"
+              //       value={filterKeyword}
+              //       onChange={(v) => setFilterKeyword(v)}
+              //       style={{ width: 180 }}
+              //     />
+              //     <Button type="text" icon={<IconRefresh />} onClick={() => setFilterKeyword('')}>
+              //       重置
+              //     </Button>
+              //   </Space>
+              // }
               >
                 <Table<TaskItem>
                   size="small"
@@ -502,7 +499,7 @@ function FloatingPanel() {
             </Space>
           </TabPane>
 
-          <TabPane key="logs" title="日志">
+          <TabPane key="logs" title={<IconBook fontSize={18} />}>
             <Card
               className="nc-card"
               title="运行日志"
