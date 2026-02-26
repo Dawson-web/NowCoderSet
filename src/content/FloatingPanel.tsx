@@ -291,9 +291,6 @@ function FloatingPanel() {
         title: t.title ?? '未命名',
         description: `${t.record?.data?.userBrief?.nickname ?? '匿名'} · ${t.rcType ?? '-'} · ${t.status}`,
         avatar: t.record?.data?.userBrief?.headImgUrl || 'https://static.nowcoder.com/img/logo.2c51d66.svg',
-        imageSrc:
-          (t.record?.data as any)?.contentData?.contentImageUrls?.[0] ||
-          'https://static.nowcoder.com/img/logo.2c51d66.svg',
         likes: (t.record?.data as any)?.frequencyData?.likeCnt ?? 0,
         stars: idx + 1,
         url: t.url,
@@ -434,38 +431,15 @@ function FloatingPanel() {
 
               <Card className="nc-card" title="文章列表">
                 <List
-                  className="list-demo-action-layout"
-                  wrapperStyle={{ maxWidth: 830 }}
-                  bordered={false}
-                  loading={running && tasks.length === 0}
-                  pagination={{ pageSize: 3 }}
-                  data={listData}
+                  style={{ width: '100%' }}
+                  dataSource={listData}
                   render={(item, index) => (
-                    <List.Item
-                      key={item.key}
-                      style={{ padding: '16px 0', borderBottom: '1px solid var(--color-fill-3)' }}
-                      actionLayout="vertical"
-                      actions={[
-                        <span key="a1"><IconHeart /> {item.likes}</span>,
-                        <span key="a2"><IconStar /> {item.stars}</span>,
-                        <span key="a3"><IconMessage /> 跳转</span>,
-                      ]}
-                      extra={
-                        <div className="image-area">
-                          <img alt="preview" src={item.imageSrc} style={{ width: 120, borderRadius: 12 }} />
-                        </div>
-                      }
-                    >
+                    <List.Item key={index}>
                       <List.Item.Meta
-                        avatar={<Avatar shape="square"><img alt="avatar" src={item.avatar} /></Avatar>}
-                        title={
-                          item.url ? (
-                            <a href={item.url} target="_blank" rel="noreferrer">{item.title}</a>
-                          ) : item.title
-                        }
+                        avatar={<Avatar shape='square'> <img alt='avatar' src={`${item.avatar}`} /></Avatar>}
+                        title={item.title}
                         description={item.description}
                       />
-                      <Tag size="small" color="purple">{item.rcType ?? '-'}</Tag>
                     </List.Item>
                   )}
                 />
