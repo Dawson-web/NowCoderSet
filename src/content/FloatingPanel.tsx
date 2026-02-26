@@ -4,7 +4,6 @@ import {
   Form,
   Grid,
   Input,
-  List,
   Progress,
   Radio,
   Space,
@@ -13,8 +12,10 @@ import {
   Tag,
   Typography,
   Message,
+  Tabs,
 } from '@arco-design/web-react';
 import {
+  IconCalendar,
   IconCheckCircleFill,
   IconCloseCircleFill,
   IconDownload,
@@ -34,6 +35,7 @@ import { c } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
 
 const { Title, Text } = Typography;
 const { Row, Col } = Grid;
+const { TabPane } = Tabs;
 
 type TaskItem = CrawlTask & {
   record: SearchRecord;
@@ -90,10 +92,10 @@ function FloatingPanel() {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...patch } : t)));
   };
 
-  const toPlainText = (html?: string) => {
+  const toPlainText = (html?: string, rcType?: number) => {
     if (!html) return '';
     try {
-      return extractMomentContentText(html);
+      return extractMomentContentText(html, rcType);
     } catch (e) {
       return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     }
@@ -170,7 +172,7 @@ function FloatingPanel() {
       lines.push(`- 链接：${t.url || '-'}`);
       lines.push(`- 作者：${t.record?.data?.userBrief?.nickname ?? '-'}`);
       lines.push('');
-      const contentText = toPlainText(t.content);
+      const contentText = toPlainText(t.content, t.rcType);
       lines.push(contentText || '*（正文为空）*');
       lines.push('');
       lines.push('---');
@@ -227,7 +229,6 @@ function FloatingPanel() {
             if (!uuid) {
               throw new Error('缺少 contentData.id');
             }
-            console.log(201, uuid, record)
             content = await fetchMomentDetailHtml(String(uuid));
           } else if (record.rc_type === 207) {
             const uuid = record.data?.momentData?.uuid ?? record.data?.contentId;
@@ -291,245 +292,242 @@ function FloatingPanel() {
           </Button>
         </div>
 
-        <Grid.Row gutter={12}>
-          <Col span={12}>
-            <Card className="nc-card nc-pill" bodyStyle={{ padding: 14 }}>
-              <div className="nc-pill__icon success">✔</div>
-              <div className="nc-pill__text">
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  已完成
-                </Text>
-                <Title heading={3} style={{ margin: 0 }}>
-                  {summary.finished}
-                </Title>
-              </div>
-            </Card>
-          </Col>
-          <Col span={12}>
-            <Card className="nc-card nc-pill" bodyStyle={{ padding: 14 }}>
-              <div className="nc-pill__icon purple">☁</div>
-              <div className="nc-pill__text">
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  待抓取
-                </Text>
-                <Title heading={3} style={{ margin: 0 }}>
-                  {summary.pending}
-                </Title>
-              </div>
-            </Card>
-          </Col>
-        </Grid.Row>
-
-        <UserInfoCard />
-
-        <Card
-          className="nc-card"
-          title="抓取配置"
-          extra={
-            <Space>
-              <Button type="primary" icon={<IconPlayArrow />} onClick={handleStart} loading={running}>
-                开始抓取
-              </Button>
-              <Button type="outline" icon={<IconPause />} disabled>
-                暂停
-              </Button>
-              <Button icon={<IconDownload />} onClick={() => handleExport()}>
-                导出结果
-              </Button>
+        <Tabs tabPosition="right" type="card" className="nc-tabs" defaultActiveTab='crawl'>
+          <TabPane key="profile" title={
+            <span>
+              <IconCalendar style={{ marginRight: 6 }} />
+              Tab 1
+            </span>
+          }>
+            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+              <UserInfoCard />
             </Space>
-          }
-        >
-          <Form
-            layout="vertical"
-            form={form}
-            initialValues={{
-              pages: 1,
-              keyword: '腾讯',
-              dedup: true,
-              format: 'markdown',
-            }}
-          >
-            <Grid.Row gutter={12}>
-              <Col span={12}>
-                <Form.Item
-                  label="最大页数"
-                  field="pages"
-                  rules={[
-                    { required: true, message: '请填写最大页数' },
+          </TabPane>
+
+          <TabPane key="crawl" title="抓取">
+            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+              <Card
+                className="nc-card"
+                title="抓取配置"
+                extra={
+                  <Space>
+                    <Button type="primary" icon={<IconPlayArrow />} onClick={handleStart} loading={running}>
+                      开始抓取
+                    </Button>
+                    <Button type="outline" icon={<IconPause />} disabled>
+                      暂停
+                    </Button>
+                    <Button icon={<IconDownload />} onClick={() => handleExport()}>
+                      导出结果
+                    </Button>
+                  </Space>
+                }
+              >
+                <Form
+                  layout="vertical"
+                  form={form}
+                  initialValues={{
+                    pages: 1,
+                    keyword: '腾讯',
+                    dedup: true,
+                    format: 'markdown',
+                  }}
+                >
+                  <Grid.Row gutter={12}>
+                    <Col span={12}>
+                      <Form.Item
+                        label="最大页数"
+                        field="pages"
+                        rules={[
+                          { required: true, message: '请填写最大页数' },
+                          {
+                            validator: (_value, cb) => {
+                              const num = Number(_value);
+                              if (Number.isNaN(num) || num <= 0) {
+                                cb('请输入大于 0 的数字');
+                              } else {
+                                cb();
+                              }
+                            },
+                          },
+                        ]}
+                      >
+                        <Input placeholder="例如 3 页" inputMode="numeric" />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label="关键字过滤（可选）"
+                        field="keyword"
+                        tooltip="匹配标题或正文关键字"
+                      >
+                        <Input placeholder="算法 / 秋招 / Java..." allowClear />
+                      </Form.Item>
+                    </Col>
+                  </Grid.Row>
+
+                  <Grid.Row gutter={12}>
+                    <Col span={12}>
+                      <Form.Item label="导出格式" field="format" >
+                        <Radio.Group type="button" className="flex">
+                          <Radio value="markdown">Markdown</Radio>
+                          <Radio value="json">JSON</Radio>
+                        </Radio.Group>
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label="是否去重"
+                        field="dedup"
+                        triggerPropName="checked"
+                      >
+                        <Switch />
+                      </Form.Item>
+                    </Col>
+                  </Grid.Row>
+                </Form>
+              </Card>
+
+              <Row gutter={12}>
+                <Col span={12}>
+                  <Card className="nc-card" title="进度概览" bordered={false}>
+                    <div className="progress-row">
+                      <Progress type='circle' percent={summary.progress} />
+
+                      <div className="progress-stats">
+                        <Text type="primary"><IconMinusCircleFill className='mr-1' />进行中：{summary.pending}</Text>
+                        <Text type="success"><IconCheckCircleFill className='mr-1' />已完成：{summary.finished}</Text>
+                        <Text type="error"><IconCloseCircleFill className='mr-1' />已失败：{summary.failed}</Text>
+                      </div>
+                    </div>
+                  </Card>
+                </Col>
+                <Col span={12}>
+                  <Card className="nc-card" title="常用操作" bordered={false}>
+                    <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                      <Button long type="outline" icon={<IconDownload />} onClick={() => handleExport('markdown')} disabled={!tasks.length}>
+                        导出 Markdown
+                      </Button>
+                      <Button long icon={<IconDownload />} onClick={() => handleExport('json')} disabled={!tasks.length}>
+                        导出 JSON
+                      </Button>
+                      <Button long type="text" icon={<IconRefresh />} onClick={() => setTasks([])}>
+                        清空列表
+                      </Button>
+                    </Space>
+                  </Card>
+                </Col>
+              </Row>
+
+              <Card
+                className="nc-card"
+                title="文章列表"
+                extra={
+                  <Space>
+                    <Input
+                      allowClear
+                      placeholder="输入关键词（如：腾讯）"
+                      value={filterKeyword}
+                      onChange={(v) => setFilterKeyword(v)}
+                      style={{ width: 180 }}
+                    />
+                    <Button type="text" icon={<IconRefresh />} onClick={() => setFilterKeyword('')}>
+                      重置
+                    </Button>
+                  </Space>
+                }
+              >
+                <Table<TaskItem>
+                  size="small"
+                  loading={running && tasks.length === 0}
+                  pagination={false}
+                  rowKey={(row) => row.id}
+                  data={filteredTasks}
+                  columns={[
                     {
-                      validator: (_value, cb) => {
-                        const num = Number(_value);
-                        if (Number.isNaN(num) || num <= 0) {
-                          cb('请输入大于 0 的数字');
-                        } else {
-                          cb();
-                        }
+                      title: '标题',
+                      width: 200,
+                      render: (_col, record) => (
+                        <Text ellipsis>{record.title ?? '-'}</Text>
+                      ),
+                    },
+                    {
+                      title: '作者',
+                      width: 120,
+                      render: (_col, record) => record.record?.data?.userBrief?.nickname ?? '-',
+                    },
+                    {
+                      title: '来源',
+                      width: 80,
+                      render: (_col, record) => <Tag color="purple">{record.rcType || '-'}</Tag>,
+                    },
+                    {
+                      title: '状态',
+                      width: 110,
+                      render: (_col, record) => {
+                        const color =
+                          record.status === 'success'
+                            ? 'green'
+                            : record.status === 'failed'
+                              ? 'red'
+                              : record.status === 'fetching'
+                                ? 'arcoblue'
+                                : 'orangered';
+                        const text =
+                          record.status === 'pending'
+                            ? '待抓取'
+                            : record.status === 'fetching'
+                              ? '抓取中'
+                              : record.status === 'success'
+                                ? '成功'
+                                : '失败';
+                        return <Tag color={color}>{text}</Tag>;
                       },
                     },
+                    {
+                      title: '链接',
+                      width: 140,
+                      render: (_col, record) =>
+                        record.url ? (
+                          <a href={record.url} target="_blank" rel="noreferrer">
+                            查看
+                          </a>
+                        ) : (
+                          '-'
+                        ),
+                    },
                   ]}
-                >
-                  <Input placeholder="例如 3 页" inputMode="numeric" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="关键字过滤（可选）"
-                  field="keyword"
-                  tooltip="匹配标题或正文关键字"
-                >
-                  <Input placeholder="算法 / 秋招 / Java..." allowClear />
-                </Form.Item>
-              </Col>
-            </Grid.Row>
+                />
+              </Card>
+            </Space>
+          </TabPane>
 
-            <Grid.Row gutter={12}>
-              <Col span={12}>
-                <Form.Item label="导出格式" field="format" >
-                  <Radio.Group type="button" className="flex">
-                    <Radio value="markdown">Markdown</Radio>
-                    <Radio value="json">JSON</Radio>
-                  </Radio.Group>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="是否去重"
-                  field="dedup"
-                  triggerPropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
-              </Col>
-            </Grid.Row>
-          </Form>
-        </Card>
-
-        <Row gutter={12}>
-          <Col span={12}>
-            <Card className="nc-card" title="进度概览" bordered={false}>
-              <div className="progress-row">
-                <Progress type='circle' percent={summary.progress} />
-
-                <div className="progress-stats">
-                  <Text type="primary"><IconMinusCircleFill className='mr-1' />进行中：{summary.pending}</Text>
-                  <Text type="success"><IconCheckCircleFill className='mr-1' />已完成：{summary.finished}</Text>
-                  <Text type="error"><IconCloseCircleFill className='mr-1' />已失败：{summary.failed}</Text>
-                </div>
+          <TabPane key="logs" title="日志">
+            <Card
+              className="nc-card"
+              title="运行日志"
+              extra={
+                <Space>
+                  <Button type="text" size="small" onClick={() => setLogs([])}>
+                    清空
+                  </Button>
+                </Space>
+              }
+            >
+              <div className="nc-terminal">
+                {logs.length === 0 ? (
+                  <Text type="secondary">暂无日志</Text>
+                ) : (
+                  logs.map((line, idx) => (
+                    <div className="nc-terminal__line" key={idx}>
+                      <code>{line}</code>
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
-          </Col>
-          <Col span={12}>
-            <Card className="nc-card" title="常用操作" bordered={false}>
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Button long type="outline" icon={<IconDownload />} onClick={() => handleExport('markdown')} disabled={!tasks.length}>
-                  导出 Markdown
-                </Button>
-                <Button long icon={<IconDownload />} onClick={() => handleExport('json')} disabled={!tasks.length}>
-                  导出 JSON
-                </Button>
-                <Button long type="text" icon={<IconRefresh />} onClick={() => setTasks([])}>
-                  清空列表
-                </Button>
-              </Space>
-            </Card>
-          </Col>
-        </Row>
-
-        <Card
-          className="nc-card"
-          title="文章列表"
-          extra={
-            <Space>
-              <Input
-                allowClear
-                placeholder="输入关键词（如：腾讯）"
-                value={filterKeyword}
-                onChange={(v) => setFilterKeyword(v)}
-                style={{ width: 180 }}
-              />
-              <Button type="text" icon={<IconRefresh />} onClick={() => setFilterKeyword('')}>
-                重置
-              </Button>
-            </Space>
-          }
-        >
-          <Table<TaskItem>
-            size="small"
-            loading={running && tasks.length === 0}
-            pagination={false}
-            rowKey={(row) => row.id}
-            data={filteredTasks}
-            columns={[
-              {
-                title: '标题',
-                width: 200,
-                render: (_col, record) => (
-                  <Text ellipsis>{record.title ?? '-'}</Text>
-                ),
-              },
-              {
-                title: '作者',
-                width: 120,
-                render: (_col, record) => record.record?.data?.userBrief?.nickname ?? '-',
-              },
-              {
-                title: '来源',
-                width: 80,
-                render: (_col, record) => <Tag color="purple">{record.rcType || '-'}</Tag>,
-              },
-              {
-                title: '状态',
-                width: 110,
-                render: (_col, record) => {
-                  const color =
-                    record.status === 'success'
-                      ? 'green'
-                      : record.status === 'failed'
-                        ? 'red'
-                        : record.status === 'fetching'
-                          ? 'arcoblue'
-                          : 'orangered';
-                  const text =
-                    record.status === 'pending'
-                      ? '待抓取'
-                      : record.status === 'fetching'
-                        ? '抓取中'
-                        : record.status === 'success'
-                          ? '成功'
-                          : '失败';
-                  return <Tag color={color}>{text}</Tag>;
-                },
-              },
-              {
-                title: '链接',
-                width: 140,
-                render: (_col, record) =>
-                  record.url ? (
-                    <a href={record.url} target="_blank" rel="noreferrer">
-                      查看
-                    </a>
-                  ) : (
-                    '-'
-                  ),
-              },
-            ]}
-          />
-        </Card>
-
-        <Card
-          title="运行日志"
-          extra={
-            <Button type="text" size="small" onClick={() => setLogs([])}>
-              清空
-            </Button>
-          }
-        >
-          <List
-            size="small"
-            dataSource={logs}
-            render={(item, idx) => <List.Item key={idx}>{item}</List.Item>}
-          />
-        </Card>
+          </TabPane>
+        </Tabs>
       </Space>
     </main>
   );

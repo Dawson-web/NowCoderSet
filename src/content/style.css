@@ -144,6 +144,35 @@
   gap: 6px;
 }
 
+.nc-tabs {
+  background: transparent;
+}
+
+.nc-tabs .arco-tabs-nav {
+  min-width: 120px;
+}
+
+.nc-tabs .arco-tabs-content {
+  padding-top: 8px;
+}
+
+.nc-terminal {
+  background: #0d1117;
+  color: #e6edf3;
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 220px;
+  max-height: 360px;
+  overflow: auto;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.nc-terminal__line {
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 .nc-card .arco-btn {
   border-radius: 12px;
 }

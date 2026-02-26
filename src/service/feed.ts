@@ -8,31 +8,10 @@ const feedApi = axios.create({
 });
 
 /**
- * 通过 momentData 的 uuid 获取帖子详情数据。
- * 仅封装请求本身，调用方可在需要时引入。
- */
-export const fetchMomentDetail = async (uuid: string): Promise<MomentDetailData> => {
-  if (!uuid) {
-    throw new Error('缺少帖子 uuid');
-  }
-
-  const { data } = await feedApi.get<MomentDetailResponse>(`/feed/main/detail/${uuid}`, {
-    // 避免缓存，保持与其他接口一致的时间戳参数
-    params: { _: Date.now() },
-  });
-
-  if (data?.success === false) {
-    throw new Error(data.msg || '获取帖子详情失败');
-  }
-
-  return data?.data ?? {};
-};
-
-/**
  * 从帖子详情页的 HTML 中提取正文文本（基于 feed-content-text 容器）。
  * 使用正则匹配，不依赖 DOM。
  */
-export const extractMomentContentText = (html: string): string => {
+export const extractMomentContentText = (html: string, rcType: number): string => {
   try {
     console.log('【调试】进入extractMomentContentText，HTML长度：', html?.length || 0);
     if (!html) {
@@ -72,7 +51,7 @@ export const extractMomentContentText = (html: string): string => {
     // 步骤3：定位正文
     let targetHtml = '';
     try {
-      const feedContent = tempContainer.querySelector('.feed-content-text');
+      const feedContent = tempContainer.querySelector('.post-content-box');
       if (feedContent) {
         targetHtml = feedContent.innerHTML;
         console.log('【调试】找到.feed-content-text，长度：', targetHtml.length);
