@@ -57,32 +57,6 @@
   width: 100%;
 }
 
-.nc-hero {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #faf6ff, #f0ecff);
-  box-shadow: var(--nc-shadow);
-}
-
-.nc-hero__logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: radial-gradient(circle at 30% 30%, #ff9ad5, #8f7bff);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.nc-hero__text h4 {
-  color: #312b68;
-}
-
 .nc-glass-btn {
   background: linear-gradient(135deg, #8f7bff, #c2a6ff);
   border: none;
@@ -106,32 +80,6 @@
   padding: 16px;
 }
 
-.nc-pill {
-  background: linear-gradient(135deg, #fbf8ff, #f3edff) !important;
-}
-
-.nc-pill__icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  font-size: 20px;
-  color: #fff;
-}
-
-.nc-pill__icon.success {
-  background: linear-gradient(135deg, #76f2d3, #61c3ff);
-}
-
-.nc-pill__icon.purple {
-  background: linear-gradient(135deg, #d3a9ff, #7b6dff);
-}
-
-.nc-pill__text {
-  display: flex;
-  flex-direction: column;
-}
 
 .progress-row {
   display: flex;

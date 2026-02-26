@@ -56,7 +56,7 @@ function FloatingPanel() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
   const [running, setRunning] = useState(false);
-  const [filterKeyword, setFilterKeyword] = useState('腾讯');
+  const [filterKeyword, setFilterKeyword] = useState('');
 
   const addLog = (message: string) => {
     const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
@@ -103,7 +103,7 @@ function FloatingPanel() {
   const toPlainText = (html?: string, rcType?: number) => {
     if (!html) return '';
     try {
-      return extractMomentContentText(html, rcType);
+      return extractMomentContentText(html);
     } catch (e) {
       return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     }
@@ -302,20 +302,16 @@ function FloatingPanel() {
     [filteredTasks]
   );
 
+  console.log('listData', listData);
+
   return (
     <main className="popup nc-trancy">
       <Space direction="vertical" size={12} style={{ width: '100%' }}>
-        <div className="nc-hero">
-          <div className="nc-hero__logo">NC</div>
-          <div className="nc-hero__text">
-            <Title heading={4} style={{ margin: 0 }}>
-              NowCoder Panel
-            </Title>
-            <Text type="secondary">更圆润的采集助手</Text>
-          </div>
-          <Button type="primary" size="small" className="nc-glass-btn" icon={<IconPlayArrow />}>
-            新建任务
-          </Button>
+
+        <div>
+          <Title heading={4} style={{ margin: 0 }}>
+            <text className='font-bold' style={{ color: '#165DFE' }}>Now</text>Coder.🐞
+          </Title>
         </div>
 
         <Tabs tabPosition="right" defaultActiveTab='crawl'>
@@ -336,9 +332,6 @@ function FloatingPanel() {
                     <Button type="outline" icon={<IconPause />} disabled>
                       暂停
                     </Button>
-                    <Button icon={<IconDownload />} onClick={() => handleExport()}>
-                      导出结果
-                    </Button>
                   </Space>
                 }
               >
@@ -347,7 +340,7 @@ function FloatingPanel() {
                   form={form}
                   initialValues={{
                     pages: 1,
-                    keyword: '腾讯',
+                    keyword: '',
                     dedup: true,
                     format: 'markdown',
                   }}
@@ -376,9 +369,10 @@ function FloatingPanel() {
                     </Col>
                     <Col span={12}>
                       <Form.Item
-                        label="关键字过滤（可选）"
+                        label="关键字"
                         field="keyword"
                         tooltip="匹配标题或正文关键字"
+                        rules={[{ required: true, message: '请填写关键字' }]}
                       >
                         <Input placeholder="算法 / 秋招 / Java..." allowClear />
                       </Form.Item>
@@ -410,7 +404,7 @@ function FloatingPanel() {
               <Row gutter={12}>
                 <Col span={12}>
                   <Card className="nc-card" title="进度概览" bordered={false}>
-                    <div className="progress-row">
+                    <div className="progress-row " style={{ height: "110px" }}>
                       <Progress type='circle' percent={summary.progress} />
 
                       <div className="progress-stats">
@@ -423,7 +417,7 @@ function FloatingPanel() {
                 </Col>
                 <Col span={12}>
                   <Card className="nc-card" title="常用操作" bordered={false}>
-                    <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                    <Space direction="vertical" size={8} style={{ width: '100%', height: "110px" }}>
                       <Button long type="outline" icon={<IconDownload />} onClick={() => handleExport('markdown')} disabled={!tasks.length}>
                         导出 Markdown
                       </Button>

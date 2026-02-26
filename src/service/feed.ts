@@ -11,7 +11,7 @@ const feedApi = axios.create({
  * 从帖子详情页的 HTML 中提取正文文本（基于 feed-content-text 容器）。
  * 使用正则匹配，不依赖 DOM。
  */
-export const extractMomentContentText = (html: string, rcType: number): string => {
+export const extractMomentContentText = (html: string): string => {
   try {
     console.log('【调试】进入extractMomentContentText，HTML长度：', html?.length || 0);
     if (!html) {
