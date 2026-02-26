@@ -30,6 +30,7 @@ import { fetchDiscussDetailHtml, fetchMomentDetailHtml, extractMomentContentText
 import type { SearchRecord } from '@/type/search';
 import type { CrawlTask } from '@/type/feed';
 import { filterContentType } from '@/utils';
+import { c } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
 
 const { Title, Text } = Typography;
 const { Row, Col } = Grid;
@@ -68,7 +69,7 @@ function FloatingPanel() {
 
     const url =
       record.rc_type === 201
-        ? `https://www.nowcoder.com/feed/main/detail/${record.data?.contentData?.id ?? ''}`
+        ? `https://www.nowcoder.com/feed/main/detail/${record.data?.momentData?.uuid ?? ''}`
         : record.rc_type === 207
           ? `https://www.nowcoder.com/discuss/${record.data?.momentData?.uuid ?? record.data?.contentId ?? ''}`
           : '';
@@ -222,10 +223,11 @@ function FloatingPanel() {
         try {
           let content = '';
           if (record.rc_type === 201) {
-            const uuid = record.data?.contentData?.id ?? record.data?.contentId;
+            const uuid = record.data?.momentData?.uuid ?? record.data?.contentId;
             if (!uuid) {
               throw new Error('缺少 contentData.id');
             }
+            console.log(201, uuid, record)
             content = await fetchMomentDetailHtml(String(uuid));
           } else if (record.rc_type === 207) {
             const uuid = record.data?.momentData?.uuid ?? record.data?.contentId;
