@@ -2,9 +2,14 @@
   "manifest_version": 3,
   "name": "NowCoderSet",
   "version": "0.1.0",
-  "description": "Chrome extension built with React, Vite, and TypeScript.",
+  "description": "牛客网数据采集助手 — 一键爬取牛客讨论区文章，支持去重、历史记录管理与多格式导出。",
   "action": {
-    "default_title": "NowCoderSet"
+    "default_title": "NowCoderSet",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js",

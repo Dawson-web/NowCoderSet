@@ -20,23 +20,27 @@ const getContainer = () =>
   document.getElementById('nowcoder-float-root') ?? document.body;
 
 interface FloatingPanelProps {
+  open: boolean;
   onClose: () => void;
 }
 
-const FloatingPanel = ({ onClose }: FloatingPanelProps) => {
+const FloatingPanel = ({ open, onClose }: FloatingPanelProps) => {
   const [logs, setLogs] = useState<string[]>([]);
   const logsRef = useRef<string[]>([]);
   const [showSiteWarning, setShowSiteWarning] = useState(false);
 
-  // 首次挂载时检测是否在牛客网
+  // 侧边栏打开时检测是否在牛客网
   useEffect(() => {
+    if (!open) {
+      return;
+    }
     if (!isNowcoderSite()) {
       const warned = localStorage.getItem(NC_WARN_KEY);
       if (!warned) {
         setShowSiteWarning(true);
       }
     }
-  }, []);
+  }, [open]);
 
   const handleDismissWarning = useCallback(() => {
     localStorage.setItem(NC_WARN_KEY, '1');
