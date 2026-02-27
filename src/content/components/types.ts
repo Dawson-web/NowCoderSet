@@ -4,6 +4,7 @@ import type { FormInstance } from '@arco-design/web-react';
 
 export type TaskItem = CrawlTask & {
   record: SearchRecord;
+  uuid?: string;
   content?: string;
   page?: number;
 };

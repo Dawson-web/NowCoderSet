@@ -1,22 +1,33 @@
 import { Tabs, Typography } from '@arco-design/web-react';
-import { IconBook, IconBug, IconUser } from '@arco-design/web-react/icon';
-import { useCallback, useState } from 'react';
+import { IconBook, IconBug, IconCalendar, IconUser } from '@arco-design/web-react/icon';
+import { useCallback, useRef, useState } from 'react';
 import UserInfoCard from './components/UserInfoCard';
 import CrawlPanel from './components/CrawlPanel';
 import LogsPanel from './components/LogsPanel';
+import HistoryPanel from './components/HistoryPanel';
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
 
 const FloatingPanel = () => {
   const [logs, setLogs] = useState<string[]>([]);
+  const logsRef = useRef<string[]>([]);
 
   const addLog = useCallback((message: string) => {
     const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-    setLogs((prev) => [...prev, `[${ts}] ${message}`].slice(-200));
+    setLogs((prev) => {
+      const next = [...prev, `[${ts}] ${message}`].slice(-200);
+      logsRef.current = next;
+      return next;
+    });
   }, []);
 
-  const handleClearLogs = useCallback(() => setLogs([]), []);
+  const getLogs = useCallback(() => logsRef.current, []);
+
+  const handleClearLogs = useCallback(() => {
+    setLogs([]);
+    logsRef.current = [];
+  }, []);
 
   return (
     <main className="nc-panel">
@@ -34,7 +45,13 @@ const FloatingPanel = () => {
         </TabPane>
 
         <TabPane key="crawl" title={<IconBug fontSize={18} />}>
-          <CrawlPanel addLog={addLog} />
+          <CrawlPanel addLog={addLog} getLogs={getLogs} />
+        </TabPane>
+
+        <TabPane key="history" title={<IconCalendar fontSize={18} />}>
+          <div className="nc-tab-content">
+            <HistoryPanel />
+          </div>
         </TabPane>
 
         <TabPane key="logs" title={<IconBook fontSize={18} />}>
