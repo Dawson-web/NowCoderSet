@@ -91,6 +91,8 @@
 .nc-article-list-card {
   flex: 1;
   min-height: 0;
+  max-height: calc(100vh - 500px);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -154,6 +156,7 @@
 .nc-terminal {
   flex: 1;
   min-height: 120px;
+  max-height: calc(100vh - 200px);
   overflow-y: auto;
   scrollbar-width: thin;
   background: #0d1117;
@@ -184,4 +187,11 @@
 
 .arco-radio-group-type-button .arco-radio-button {
   border-radius: 12px !important;
+}
+
+.user-info-card{
+  min-height: 120px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  scrollbar-width: thin;
 }

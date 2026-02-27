@@ -13,7 +13,7 @@ const FloatingPanel = () => {
 
   const addLog = useCallback((message: string) => {
     const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-    setLogs((prev) => [`[${ts}] ${message}`, ...prev].slice(0, 200));
+    setLogs((prev) => [...prev, `[${ts}] ${message}`].slice(-200));
   }, []);
 
   const handleClearLogs = useCallback(() => setLogs([]), []);
