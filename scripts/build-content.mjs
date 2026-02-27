@@ -36,6 +36,9 @@ const postcssPlugin = {
         '.ts': 'ts',
         '.tsx': 'tsx',
       },
+      alias: {
+        '@': path.join(projectRoot, 'src'),
+      },
       plugins: [postcssPlugin],
       target: 'es2020',
       metafile: false,

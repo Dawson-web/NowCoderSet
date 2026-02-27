@@ -36,15 +36,9 @@ function SidebarHost() {
   }, [open]);
 
   return (
-    <>
-      <div
-        className={`nc-sidebar-mask ${open ? 'show' : ''}`}
-        onClick={() => setOpen(false)}
-      />
-      <div className={`nc-sidebar ${open ? 'open' : ''}`}>
-        <FloatingPanel />
-      </div>
-    </>
+    <div className={`nc-sidebar ${open ? 'open' : ''}`}>
+      <FloatingPanel onClose={() => setOpen(false)} />
+    </div>
   );
 }
 

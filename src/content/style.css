@@ -191,7 +191,7 @@
 
 .user-info-card{
   min-height: 120px;
-  max-height: calc(100vh - 100px);
+  max-height: calc(100vh - 200px);
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -210,15 +210,53 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  padding: 8px 12px !important;
 }
 
 .nc-history-scroll {
   flex: 1;
   min-height: 0;
+  max-height: calc(100vh - 200px);
   overflow-y: auto;
   scrollbar-width: thin;
 }
 
-.nc-history-card .arco-collapse-item-content-box {
-  padding: 0 4px;
+/* 历史记录折叠面板间距优化 */
+.nc-history-collapse .arco-collapse-item {
+  margin-bottom: 8px;
+  border-radius: 12px !important;
+  border: 1px solid #f0f0f0 !important;
+  overflow: hidden;
+}
+
+.nc-history-collapse .arco-collapse-item:last-child {
+  margin-bottom: 0;
+}
+
+.nc-history-collapse .arco-collapse-item-header {
+  padding: 10px 12px !important;
+  background: #fafafa;
+}
+
+.nc-history-collapse .arco-collapse-item-active > .arco-collapse-item-header {
+  background: #f5f0ff;
+}
+
+.nc-history-collapse .arco-collapse-item-content-box {
+  padding: 8px 12px !important;
+}
+
+/* 历史记录展开区内的任务列表 */
+.nc-history-task-list .arco-list-item {
+  padding: 8px 4px !important;
+}
+
+/* ─── Modal / Popconfirm 弹出层：确保在 sidebar 之上 ─── */
+.nc-modal-wrap {
+  z-index: 2147483646 !important;
+}
+
+#nowcoder-float-root .arco-popconfirm-popup,
+#nowcoder-float-root .arco-tooltip-popup {
+  z-index: 2147483647 !important;
 }
