@@ -5,6 +5,7 @@
   --nc-radius-lg: 18px;
 }
 
+/* ─── 侧边栏容器 ─── */
 .nc-sidebar {
   position: fixed;
   top: 0;
@@ -19,8 +20,7 @@
   z-index: 2147483000;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  scrollbar-width: none;
+  overflow: hidden;
   border-radius: 16px 0 0 16px;
 }
 
@@ -34,7 +34,6 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  /* background: rgba(80, 53, 180, 0.15); */
   z-index: 2147482999;
   opacity: 0;
   pointer-events: none;
@@ -46,24 +45,96 @@
   pointer-events: auto;
 }
 
-.popup.nc-trancy {
+/* ─── 面板主容器（铺满 sidebar） ─── */
+.nc-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
   background: transparent;
 }
 
-.popup .arco-space {
-  width: 100%;
+.nc-panel-header {
+  padding-bottom: 8px;
 }
 
+/* ─── Tabs 撑满剩余空间 ─── */
+.nc-tabs {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.nc-tabs > .arco-tabs-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.nc-tabs > .arco-tabs-content > .arco-tabs-content-inner,
+.nc-tabs > .arco-tabs-content > .arco-tabs-content-inner > .arco-tabs-pane {
+  height: 100%;
+}
+
+/* ─── TabPane 内容区：flex 纵向，底部留距 ─── */
+.nc-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  padding-bottom: 16px;
+  overflow: hidden;
+}
+
+/* ─── 文章列表卡片：flex-1 占满剩余，内部可滚动 ─── */
+.nc-article-list-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.nc-article-list-card > .arco-card-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.nc-article-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* ─── 日志卡片：同理 flex-1 + 内部滚动 ─── */
+.nc-logs-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.nc-logs-card > .arco-card-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── 通用 Card 样式 ─── */
 .nc-card {
   border: none !important;
   border-radius: var(--nc-radius-lg) !important;
   background: var(--nc-surface) !important;
-  box-shadow: var(--nc-shadow);
 }
 
 .nc-card .arco-card-header {
   padding: 12px 16px;
-  /* background: linear-gradient(90deg, #f8f5ff, #fdfdff); */
   border-bottom: none;
 }
 
@@ -71,26 +142,24 @@
   padding: 16px;
 }
 
-
-.progress-row {
-  display: flex;
-  gap: 14px;
-  align-items: center;
+.nc-card .arco-btn {
+  border-radius: 12px;
 }
 
-.progress-stats {
-  display: grid;
-  gap: 6px;
+.nc-card .arco-table-container {
+  border-radius: 12px;
 }
 
+/* ─── 终端日志 ─── */
 .nc-terminal {
+  flex: 1;
+  min-height: 120px;
+  overflow-y: auto;
+  scrollbar-width: thin;
   background: #0d1117;
   color: #e6edf3;
   border-radius: 12px;
   padding: 12px;
-  min-height: 220px;
-  max-height: 100%;
-  overflow: auto;
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
@@ -99,10 +168,7 @@
   white-space: pre-wrap;
 }
 
-.nc-card .arco-btn {
-  border-radius: 12px;
-}
-
+/* ─── Arco 组件圆角覆盖 ─── */
 .arco-input-inner,
 .arco-input-outer,
 .arco-select-view,
@@ -118,8 +184,4 @@
 
 .arco-radio-group-type-button .arco-radio-button {
   border-radius: 12px !important;
-}
-
-.nc-card .arco-table-container {
-  border-radius: 12px;
 }
